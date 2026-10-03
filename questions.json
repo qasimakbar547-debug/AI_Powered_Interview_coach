@@ -1,0 +1,42 @@
+{
+    "General": [
+        "Tell me about yourself.",
+        "Why should we hire you?",
+        "What are your strengths?",
+        "What are your weaknesses?",
+        "Why do you want this job?",
+        "How do you handle pressure?",
+        "Tell me about a challenge you faced.",
+        "Where do you see yourself in five years?"
+    ],
+    "Python": [
+        "What is Python?",
+        "What are the main features of Python?",
+        "What is the difference between a list and a tuple?",
+        "What are functions in Python?",
+        "What is a dictionary in Python?",
+        "What is object-oriented programming?",
+        "What is exception handling?",
+        "Why is Python popular for AI and Machine Learning?"
+    ],
+    "Web Development": [
+        "What is HTML?",
+        "What is CSS?",
+        "What is JavaScript?",
+        "What is responsive web design?",
+        "What is the difference between frontend and backend?",
+        "What is an API?",
+        "What is HTTP?",
+        "How does a website work?"
+    ],
+    "Machine Learning": [
+        "What is Machine Learning?",
+        "What is the difference between AI and Machine Learning?",
+        "What is supervised learning?",
+        "What is unsupervised learning?",
+        "What is a dataset?",
+        "What is training data?",
+        "What is overfitting?",
+        "What is classification?"
+    ]
+}
