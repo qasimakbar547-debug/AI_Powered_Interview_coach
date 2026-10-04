@@ -898,4 +898,4 @@ elif page == "🎤 New Interview":
             )
 
             st.progress(
-                progress_value
+                progress_value)
