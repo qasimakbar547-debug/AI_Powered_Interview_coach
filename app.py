@@ -64,6 +64,13 @@ if "category" not in st.session_state:
 if "number_of_questions" not in st.session_state:
     st.session_state.number_of_questions = 5
 
+# NEW: keeps evaluation result visible
+if "answer_evaluated" not in st.session_state:
+    st.session_state.answer_evaluated = False
+
+if "current_result" not in st.session_state:
+    st.session_state.current_result = None
+
 
 # ==========================================
 # LOAD QUESTIONS
@@ -128,7 +135,7 @@ with st.sidebar:
     st.title("🎤 Interview Coach")
 
     st.write(
-        f"👤 *{user['name']}*"
+        f"👤 {user['name']}"
     )
 
     st.write(
@@ -164,6 +171,9 @@ with st.sidebar:
         st.session_state.results = []
 
         st.session_state.final_report = ""
+
+        st.session_state.answer_evaluated = False
+        st.session_state.current_result = None
 
         st.rerun()
 
@@ -289,11 +299,11 @@ elif page == "🎤 New Interview":
 
 
         st.write(
-            f"Category: *{category}*"
+            f"Category: {category}"
         )
 
         st.write(
-            f"Questions: *{number_of_questions}*"
+            f"Questions: {number_of_questions}"
         )
 
 
@@ -317,6 +327,10 @@ elif page == "🎤 New Interview":
             st.session_state.number_of_questions = (
                 number_of_questions
             )
+
+            st.session_state.answer_evaluated = False
+
+            st.session_state.current_result = None
 
             st.rerun()
 
@@ -468,7 +482,6 @@ elif page == "🎤 New Interview":
                             )
 
 
-                            # Save interview
                             save_interview(
                                 user_id=user["id"],
                                 category=category,
@@ -523,6 +536,10 @@ elif page == "🎤 New Interview":
 
                 st.session_state.final_report = ""
 
+                st.session_state.answer_evaluated = False
+
+                st.session_state.current_result = None
+
                 st.rerun()
 
 
@@ -559,6 +576,10 @@ elif page == "🎤 New Interview":
             )
 
 
+            # ==================================
+            # ANSWER INPUT
+            # ==================================
+
             answer = st.text_area(
                 "📝 Your Answer",
                 height=200,
@@ -569,109 +590,152 @@ elif page == "🎤 New Interview":
             )
 
 
-            if st.button(
-                "🤖 Evaluate My Answer",
-                use_container_width=True
-            ):
+            # ==================================
+            # EVALUATE ANSWER
+            # ==================================
 
-                if not answer.strip():
+            if not st.session_state.answer_evaluated:
 
-                    st.warning(
-                        "Please write your answer first."
-                    )
+                if st.button(
+                    "🤖 Evaluate My Answer",
+                    use_container_width=True
+                ):
 
-                else:
+                    if not answer.strip():
 
-                    with st.spinner(
-                        "🤖 AI is evaluating your answer..."
-                    ):
+                        st.warning(
+                            "Please write your answer first."
+                        )
 
-                        try:
+                    else:
 
-                            result = evaluate_answer(
-                                current_question,
-                                answer
-                            )
+                        with st.spinner(
+                            "🤖 AI is evaluating your answer..."
+                        ):
 
+                            try:
 
-                            st.session_state.answers.append(
-                                answer
-                            )
-
-                            st.session_state.results.append(
-                                result
-                            )
+                                result = evaluate_answer(
+                                    current_question,
+                                    answer
+                                )
 
 
-                            st.success(
-                                "✅ Your answer has been evaluated!"
-                            )
+                                # Save answer
+                                st.session_state.answers.append(
+                                    answer
+                                )
 
 
-                            st.subheader(
-                                f"⭐ Score: "
-                                f"{result['score']}/10"
-                            )
+                                # Save result
+                                st.session_state.results.append(
+                                    result
+                                )
 
 
-                            st.write(
-                                "### ✅ Grammar Correction"
-                            )
-
-                            st.write(
-                                result[
-                                    "grammar_correction"
-                                ]
-                            )
+                                # Save current result
+                                st.session_state.current_result = (
+                                    result
+                                )
 
 
-                            st.write(
-                                "### 💬 AI Feedback"
-                            )
+                                # Mark as evaluated
+                                st.session_state.answer_evaluated = True
 
-                            st.write(
-                                result["feedback"]
-                            )
-
-
-                            st.write(
-                                "### 💡 Better Answer"
-                            )
-
-                            st.info(
-                                result[
-                                    "better_answer"
-                                ]
-                            )
-
-
-                            st.divider()
-
-
-                            if st.button(
-                                "➡️ Next Question",
-                                use_container_width=True
-                            ):
-
-                                st.session_state.question_index += 1
 
                                 st.rerun()
 
 
-                        except Exception as error:
+                            except Exception as error:
 
-                            st.error(
-                                "❌ AI evaluation failed."
-                            )
+                                st.error(
+                                    "❌ AI evaluation failed."
+                                )
 
-                            st.write(
-                                "Please check your API key "
-                                "and internet connection."
-                            )
+                                st.write(
+                                    "Please check your API key "
+                                    "and internet connection."
+                                )
 
-                            st.code(
-                                str(error)
-                            )
+                                st.code(
+                                    str(error)
+                                )
+
+
+            # ==================================
+            # SHOW EVALUATION RESULT
+            # ==================================
+
+            if st.session_state.answer_evaluated:
+
+                result = (
+                    st.session_state.current_result
+                )
+
+
+                if result:
+
+                    st.success(
+                        "✅ Your answer has been evaluated!"
+                    )
+
+
+                    st.subheader(
+                        f"⭐ Score: "
+                        f"{result['score']}/10"
+                    )
+
+
+                    st.write(
+                        "### ✅ Grammar Correction"
+                    )
+
+                    st.write(
+                        result[
+                            "grammar_correction"
+                        ]
+                    )
+
+
+                    st.write(
+                        "### 💬 AI Feedback"
+                    )
+
+                    st.write(
+                        result["feedback"]
+                    )
+
+
+                    st.write(
+                        "### 💡 Better Answer"
+                    )
+
+                    st.info(
+                        result[
+                            "better_answer"
+                        ]
+                    )
+
+
+                    st.divider()
+
+
+                    # ==================================
+                    # NEXT QUESTION
+                    # ==================================
+
+                    if st.button(
+                        "➡️ Next Question",
+                        use_container_width=True
+                    ):
+
+                        st.session_state.question_index += 1
+
+                        st.session_state.answer_evaluated = False
+
+                        st.session_state.current_result = None
+
+                        st.rerun()
 
 
 # ==========================================
@@ -720,25 +784,25 @@ elif page == "📊 Interview History":
             ):
 
                 st.write(
-                    f"*Interview ID:* "
+                    f"Interview ID: "
                     f"{interview_id}"
                 )
 
                 st.write(
-                    f"*Category:* {category}"
+                    f"Category: {category}"
                 )
 
                 st.write(
-                    f"*Score:* {score:.1f}/10"
+                    f"Score: {score:.1f}/10"
                 )
 
                 st.write(
-                    f"*Total Questions:* "
+                    f"Total Questions: "
                     f"{total_questions}"
                 )
 
                 st.write(
-                    f"*Date:* {date}"
+                    f"Date: {date}"
                 )
 
                 st.divider()
@@ -767,11 +831,11 @@ elif page == "👤 Profile":
     )
 
     st.write(
-        f"*Name:* {user['name']}"
+        f"Name: {user['name']}"
     )
 
     st.write(
-        f"*Email:* {user['email']}"
+        f"Email: {user['email']}"
     )
 
     st.divider()
@@ -785,7 +849,7 @@ elif page == "👤 Profile":
     )
 
     st.write(
-        f"Total interviews: *{len(history)}*"
+        f"Total interviews: {len(history)}"
     )
 
     if history:
@@ -796,13 +860,13 @@ elif page == "👤 Profile":
         ) / len(history)
 
         st.write(
-            f"Average score: *{average:.1f}/10*"
+            f"Average score: {average:.1f}/10"
         )
 
     else:
 
         st.write(
-            "Average score: *No interviews yet*"
+            "Average score: No interviews yet"
         )
 
     st.success(
