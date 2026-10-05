@@ -837,34 +837,15 @@ elif st.session_state.navigation == "🎤 New Interview":
                         "✅ Grammar Correction"
                     )
 
-                    st.info(
-                        result["grammar_correction"]
-                    )
-
-
-                    st.subheader(
-                        "💬 AI Feedback"
-                    )
-
-                    st.write(
-                        result["feedback"]
-                    )
-
-
-                    st.subheader(
-                        "💡 Better Answer"
-                    )
+                                       st.subheader("💡 Better Answer")
 
                     st.info(
                         result["better_answer"]
                     )
 
-
                     st.divider()
 
-
-                   if st.button(
-   # =========================================
+                    # =========================================
                     # NEXT QUESTION
                     # =========================================
 
@@ -872,7 +853,10 @@ elif st.session_state.navigation == "🎤 New Interview":
                         "➡️ NEXT QUESTION",
                         use_container_width=True
                     ):
-
+                        st.session_state.question_index += 1
+                        st.session_state.answer_evaluated = False
+                        st.session_state.current_result = None
+                        st.rerun()
                         st.session_state.question_index += 1
                         st.session_state.answer_evaluated = False
                         st.session_state.current_result = None
