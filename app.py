@@ -871,5 +871,5 @@ elif page == "👤 Profile":
 
     st.success(
         "Your interview data is stored separately "
-        "for your account."
+        "for your account.")
     
