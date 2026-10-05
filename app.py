@@ -864,14 +864,17 @@ elif st.session_state.navigation == "🎤 New Interview":
 
 
                    if st.button(
-    "➡️ NEXT QUESTION",
-    use_container_width=True
-):
+   # =========================================
+                    # NEXT QUESTION
+                    # =========================================
 
-    st.session_state.question_index += 1
+                    if st.button(
+                        "➡️ NEXT QUESTION",
+                        use_container_width=True
+                    ):
 
-    st.session_state.answer_evaluated = False
+                        st.session_state.question_index += 1
+                        st.session_state.answer_evaluated = False
+                        st.session_state.current_result = None
 
-    st.session_state.current_result = None
-
-    st.rerun()
+                        st.rerun()
