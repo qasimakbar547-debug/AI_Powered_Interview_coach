@@ -18,7 +18,7 @@ st.set_page_config(
 
 
 # =========================================================
-# SIMPLE PROFESSIONAL CSS
+# CSS
 # =========================================================
 
 st.markdown(
@@ -27,47 +27,30 @@ st.markdown(
 
     .main-title {
         font-size: 42px;
-        font-weight: 800;
+        font-weight: 700;
         margin-bottom: 5px;
     }
 
     .subtitle {
+        color: #777;
         font-size: 18px;
-        color: #64748b;
         margin-bottom: 30px;
     }
 
-    .welcome-box {
-        padding: 25px;
-        border-radius: 18px;
-        background: #eef4ff;
-        border: 1px solid #d7e3ff;
-        margin-bottom: 25px;
+    .score-box {
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid #ddd;
+        text-align: center;
+        margin-top: 15px;
+        margin-bottom: 20px;
     }
 
     .question-box {
-        padding: 25px;
-        border-radius: 18px;
-        background: #f8fafc;
-        border: 2px solid #dbeafe;
-        margin: 20px 0;
-    }
-
-    .score-box {
-        padding: 25px;
-        border-radius: 18px;
-        background: #fff7ed;
-        border: 2px solid #fed7aa;
-        text-align: center;
-        margin: 20px 0;
-    }
-
-    .feature-box {
         padding: 20px;
-        border-radius: 16px;
-        background: white;
-        border: 1px solid #e5e7eb;
-        margin-bottom: 15px;
+        border-radius: 15px;
+        border: 1px solid #ddd;
+        margin-bottom: 20px;
     }
 
     </style>
@@ -87,41 +70,25 @@ create_tables()
 # SESSION STATE
 # =========================================================
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+defaults = {
+    "logged_in": False,
+    "user": None,
+    "navigation": "🏠 Dashboard",
+    "interview_started": False,
+    "question_index": 0,
+    "answers": [],
+    "results": [],
+    "final_report": None,
+    "category": "General",
+    "number_of_questions": 5,
+    "answer_evaluated": False,
+    "current_result": None,
+}
 
-if "user" not in st.session_state:
-    st.session_state.user = None
+for key, value in defaults.items():
 
-if "navigation" not in st.session_state:
-    st.session_state.navigation = "🏠 Dashboard"
-
-if "interview_started" not in st.session_state:
-    st.session_state.interview_started = False
-
-if "question_index" not in st.session_state:
-    st.session_state.question_index = 0
-
-if "answers" not in st.session_state:
-    st.session_state.answers = []
-
-if "results" not in st.session_state:
-    st.session_state.results = []
-
-if "final_report" not in st.session_state:
-    st.session_state.final_report = ""
-
-if "category" not in st.session_state:
-    st.session_state.category = ""
-
-if "number_of_questions" not in st.session_state:
-    st.session_state.number_of_questions = 5
-
-if "answer_evaluated" not in st.session_state:
-    st.session_state.answer_evaluated = False
-
-if "current_result" not in st.session_state:
-    st.session_state.current_result = None
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 
 # =========================================================
@@ -132,28 +99,48 @@ def load_questions():
 
     try:
 
-        with open(
-            "questions.json",
-            "r",
-            encoding="utf-8"
-        ) as file:
+        with open("questions.json", "r", encoding="utf-8") as file:
 
-            data = json.load(file)
+            return json.load(file)
 
-        return data
+    except Exception:
 
-    except FileNotFoundError:
+        return {
+            "General": [
+                "Tell me about yourself.",
+                "What are your strengths?",
+                "What are your weaknesses?",
+                "Why should we hire you?",
+                "Where do you see yourself in five years?"
+            ],
 
-        st.error("❌ questions.json file was not found.")
-        return {}
+            "Web Development": [
+                "What is HTML?",
+                "What is CSS?",
+                "What is JavaScript?",
+                "What is responsive design?",
+                "What is the difference between frontend and backend?"
+            ],
 
-    except json.JSONDecodeError:
+            "Python": [
+                "What is Python?",
+                "What are Python lists?",
+                "What is a dictionary in Python?",
+                "What is a function?",
+                "What is the difference between list and tuple?"
+            ],
 
-        st.error("❌ questions.json contains invalid JSON.")
-        return {}
+            "Machine Learning": [
+                "What is Machine Learning?",
+                "What is supervised learning?",
+                "What is classification?",
+                "What is regression?",
+                "What is overfitting?"
+            ]
+        }
 
 
-questions = load_questions()
+questions_data = load_questions()
 
 
 # =========================================================
@@ -168,13 +155,6 @@ if not st.session_state.logged_in:
 
 
 # =========================================================
-# USER
-# =========================================================
-
-user = st.session_state.user
-
-
-# =========================================================
 # SIDEBAR
 # =========================================================
 
@@ -182,25 +162,24 @@ with st.sidebar:
 
     st.title("🎤 AI Interview Coach")
 
-    st.caption("Your Personal AI Interview Assistant")
+    st.divider()
+
+    if st.session_state.user:
+
+        st.write(
+            f"👤 {st.session_state.user}"
+        )
 
     st.divider()
 
-    st.write("👤 *" + str(user["name"]) + "*")
-
-    st.caption(str(user["email"]))
-
-    st.divider()
-
-    st.session_state.navigation = st.radio(
-        "Navigation",
+    navigation = st.radio(
+        "Menu",
         [
             "🏠 Dashboard",
             "🎤 New Interview",
             "📊 Interview History",
             "👤 Profile"
         ],
-        key="navigation_radio",
         index=[
             "🏠 Dashboard",
             "🎤 New Interview",
@@ -208,6 +187,8 @@ with st.sidebar:
             "👤 Profile"
         ].index(st.session_state.navigation)
     )
+
+    st.session_state.navigation = navigation
 
     st.divider()
 
@@ -218,16 +199,6 @@ with st.sidebar:
 
         st.session_state.logged_in = False
         st.session_state.user = None
-
-        st.session_state.interview_started = False
-        st.session_state.question_index = 0
-        st.session_state.answers = []
-        st.session_state.results = []
-        st.session_state.final_report = ""
-
-        st.session_state.answer_evaluated = False
-        st.session_state.current_result = None
-
         st.rerun()
 
 
@@ -238,104 +209,68 @@ with st.sidebar:
 if st.session_state.navigation == "🏠 Dashboard":
 
     st.markdown(
-        '<div class="main-title">🎤 AI-Powered Interview Coach</div>',
+        '<div class="main-title">AI-Powered Interview Coach</div>',
         unsafe_allow_html=True
     )
 
     st.markdown(
-        '<div class="subtitle">Practice interviews with AI, improve your answers, and build confidence.</div>',
+        '<div class="subtitle">Practice interviews and improve your answers with AI.</div>',
         unsafe_allow_html=True
     )
-
-    st.markdown(
-        f"""
-        <div class="welcome-box">
-
-        <h2>Welcome, {user["name"]}! 👋</h2>
-
-        <p>
-        Your personal AI interview preparation assistant is ready.
-        </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    history = get_interview_history(user["id"])
-
-    total_interviews = len(history)
-
-
-    if total_interviews > 0:
-
-        average_score = sum(
-            item[2] for item in history
-        ) / total_interviews
-
-    else:
-
-        average_score = 0
-
 
     col1, col2, col3 = st.columns(3)
 
+    history = get_interview_history(
+        st.session_state.user
+    )
+
+    total_interviews = len(history) if history else 0
 
     with col1:
 
         st.metric(
-            "🎤 Interviews Completed",
+            "🎯 Interviews",
             total_interviews
         )
-
 
     with col2:
 
         st.metric(
-            "⭐ Average Score",
-            f"{average_score:.1f}/10"
+            "🤖 AI Feedback",
+            "Available"
         )
-
 
     with col3:
 
         st.metric(
-            "📚 Categories",
-            len(questions)
+            "📚 Practice",
+            "Unlimited"
         )
-
 
     st.divider()
 
-
-    st.subheader("🚀 Start Practicing")
-
-    st.write(
-        "Choose an interview category and practice "
-        "your answers with AI feedback."
+    st.subheader(
+        "👋 Welcome!"
     )
 
+    st.write(
+        "Practice common interview questions and get AI-powered feedback on your answers."
+    )
+
+    st.write("")
 
     if st.button(
-        "🚀 Start New Interview",
+        "🚀 START NEW INTERVIEW",
         use_container_width=True
     ):
 
         st.session_state.navigation = "🎤 New Interview"
-
         st.session_state.interview_started = False
-
         st.session_state.question_index = 0
-
         st.session_state.answers = []
-
         st.session_state.results = []
-
-        st.session_state.final_report = ""
-
+        st.session_state.final_report = None
         st.session_state.answer_evaluated = False
-
         st.session_state.current_result = None
 
         st.rerun()
@@ -347,114 +282,44 @@ if st.session_state.navigation == "🏠 Dashboard":
 
 elif st.session_state.navigation == "🎤 New Interview":
 
-    st.title("🎤 AI Interview")
+    st.markdown(
+        '<div class="main-title">🎤 New Interview</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="subtitle">Choose your interview settings and start practicing.</div>',
+        unsafe_allow_html=True
+    )
 
 
     # =====================================================
-    # BEFORE INTERVIEW
+    # INTERVIEW SETTINGS
     # =====================================================
 
     if not st.session_state.interview_started:
 
-        st.subheader("⚙️ Interview Settings")
-
-        st.write(
-            "Choose your category and number of questions."
+        st.subheader(
+            "⚙️ Interview Settings"
         )
 
-
-        # Check questions
-        if not questions:
-
-            st.error(
-                "❌ No questions found in questions.json."
-            )
-
-            st.info(
-                "Please make sure questions.json contains your interview questions."
-            )
-
-            st.stop()
-
-
-        # Category
-        category = st.selectbox(
-            "🎯 Interview Category",
-            list(questions.keys())
+        categories = list(
+            questions_data.keys()
         )
 
-
-        # Get questions
-        category_questions = questions[category]
-
-
-        if not isinstance(category_questions, list):
-
-            st.error(
-                "❌ The selected category does not contain a list of questions."
-            )
-
-            st.stop()
-
-
-        if len(category_questions) < 3:
-
-            st.warning(
-                "⚠️ This category has fewer than 3 questions."
-            )
-
-            max_questions = len(category_questions)
-
-        else:
-
-            max_questions = min(
-                10,
-                len(category_questions)
-            )
-
-
-        default_questions = min(
-            5,
-            max_questions
+        st.session_state.category = st.selectbox(
+            "Interview Category",
+            categories
         )
 
-
-        if max_questions >= 1:
-
-            number_of_questions = st.slider(
-                "📝 Number of Questions",
-                min_value=1,
-                max_value=max_questions,
-                value=default_questions
-            )
-
-        else:
-
-            st.error(
-                "❌ No questions are available in this category."
-            )
-
-            st.stop()
-
-
-        st.divider()
-
-
-        st.info(
-            f"""
-            🎯 Category: *{category}*
-
-            📝 Questions: *{number_of_questions}*
-
-            🤖 AI will evaluate your answer and provide:
-            Score, grammar correction, feedback and a better answer.
-            """
+        st.session_state.number_of_questions = st.slider(
+            "Number of Questions",
+            min_value=1,
+            max_value=10,
+            value=5
         )
 
-
-        # =================================================
-        # START BUTTON
-        # =================================================
+        st.write("")
 
         if st.button(
             "🚀 START INTERVIEW",
@@ -462,216 +327,95 @@ elif st.session_state.navigation == "🎤 New Interview":
         ):
 
             st.session_state.interview_started = True
-
             st.session_state.question_index = 0
-
             st.session_state.answers = []
-
             st.session_state.results = []
-
-            st.session_state.final_report = ""
-
-            st.session_state.category = category
-
-            st.session_state.number_of_questions = (
-                number_of_questions
-            )
-
+            st.session_state.final_report = None
             st.session_state.answer_evaluated = False
-
             st.session_state.current_result = None
 
             st.rerun()
 
 
     # =====================================================
-    # INTERVIEW STARTED
+    # INTERVIEW QUESTIONS
     # =====================================================
 
     else:
 
-        category = st.session_state.category
-
-        number_of_questions = (
-            st.session_state.number_of_questions
+        category_questions = questions_data.get(
+            st.session_state.category,
+            []
         )
 
-
-        question_list = questions[category][
-            :number_of_questions
+        selected_questions = category_questions[
+            :st.session_state.number_of_questions
         ]
 
 
-        current_index = (
+        # =================================================
+        # INTERVIEW COMPLETED
+        # =================================================
+
+        if (
             st.session_state.question_index
-        )
-
-
-        # =================================================
-        # COMPLETED
-        # =================================================
-
-        if current_index >= len(question_list):
+            >= len(selected_questions)
+        ):
 
             st.success(
                 "🎉 Interview Completed!"
             )
 
+            st.subheader(
+                "📊 Final Interview Report"
+            )
 
-            st.title("🏆 Final Interview Report")
+            if st.session_state.final_report is None:
 
+                try:
 
-            if st.session_state.results:
-
-                total_score = sum(
-                    result["score"]
-                    for result in st.session_state.results
-                )
-
-
-                average_score = (
-                    total_score /
-                    len(st.session_state.results)
-                )
-
-
-                st.markdown(
-                    f"""
-                    <div class="score-box">
-
-                    <h2>⭐ Overall Score</h2>
-
-                    <h1>{average_score:.1f}/10</h1>
-
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-
-                st.subheader(
-                    "📝 Question Results"
-                )
-
-
-                for index, result in enumerate(
-                    st.session_state.results,
-                    start=1
-                ):
-
-                    with st.expander(
-                        f"Question {index} — Score {result['score']}/10"
-                    ):
-
-                        st.write(
-                            "### ⭐ Score"
-                        )
-
-                        st.write(
-                            f"{result['score']}/10"
-                        )
-
-
-                        st.write(
-                            "### ✅ Grammar Correction"
-                        )
-
-                        st.write(
-                            result["grammar_correction"]
-                        )
-
-
-                        st.write(
-                            "### 💬 AI Feedback"
-                        )
-
-                        st.write(
-                            result["feedback"]
-                        )
-
-
-                        st.write(
-                            "### 💡 Better Answer"
-                        )
-
-                        st.info(
-                            result["better_answer"]
-                        )
-
-
-                # =========================================
-                # FINAL REPORT
-                # =========================================
-
-                if not st.session_state.final_report:
-
-                    with st.spinner(
-                        "🤖 AI is preparing your final report..."
-                    ):
-
-                        try:
-
-                            report = generate_final_report(
-                                st.session_state.results
-                            )
-
-
-                            st.session_state.final_report = report
-
-
-                            save_interview(
-                                user_id=user["id"],
-                                category=category,
-                                score=average_score,
-                                total_questions=len(
-                                    question_list
-                                ),
-                                report=report
-                            )
-
-
-                        except Exception as error:
-
-                            st.error(
-                                "❌ Could not create final report."
-                            )
-
-                            st.code(
-                                str(error)
-                            )
-
-
-                if st.session_state.final_report:
-
-                    st.subheader(
-                        "📋 AI Final Report"
+                    st.session_state.final_report = generate_final_report(
+                        st.session_state.results
                     )
 
-                    st.write(
+                except Exception:
+
+                    st.session_state.final_report = (
+                        "Your interview has been completed successfully."
+                    )
+
+
+                try:
+
+                    save_interview(
+                        st.session_state.user,
+                        st.session_state.category,
+                        st.session_state.results,
                         st.session_state.final_report
                     )
 
+                except Exception:
+
+                    pass
+
+
+            st.write(
+                st.session_state.final_report
+            )
 
             st.divider()
 
-
             if st.button(
-                "🔄 Start New Interview",
+                "🔄 START NEW INTERVIEW",
                 use_container_width=True
             ):
 
                 st.session_state.interview_started = False
-
                 st.session_state.question_index = 0
-
                 st.session_state.answers = []
-
                 st.session_state.results = []
-
-                st.session_state.final_report = ""
-
+                st.session_state.final_report = None
                 st.session_state.answer_evaluated = False
-
                 st.session_state.current_result = None
 
                 st.rerun()
@@ -683,70 +427,67 @@ elif st.session_state.navigation == "🎤 New Interview":
 
         else:
 
-            current_question = question_list[
-                current_index
+            current_question = selected_questions[
+                st.session_state.question_index
             ]
 
-
-            # Progress
-            progress = (
-                current_index /
-                len(question_list)
+            question_number = (
+                st.session_state.question_index + 1
             )
 
+            total_questions = len(
+                selected_questions
+            )
 
             st.progress(
-                progress
+                question_number / total_questions
             )
 
-
-            st.caption(
-                f"Question {current_index + 1} "
-                f"of {len(question_list)}"
+            st.write(
+                f"Question {question_number} of {total_questions}"
             )
 
-
-            # Question card
             st.markdown(
-                f"""
-                <div class="question-box">
+                '<div class="question-box">',
+                unsafe_allow_html=True
+            )
 
-                <h3>🤖 Interview Question</h3>
+            st.subheader(
+                current_question
+            )
 
-                <h2>{current_question}</h2>
-
-                </div>
-                """,
+            st.markdown(
+                '</div>',
                 unsafe_allow_html=True
             )
 
 
-            # Answer
+            # =================================================
+            # ANSWER BOX
+            # =================================================
+
             answer = st.text_area(
                 "✍️ Your Answer",
-                height=220,
-                placeholder=(
-                    "Write your interview answer in English..."
-                ),
-                key=f"answer_{current_index}"
+                height=180,
+                placeholder="Type your interview answer here..."
             )
 
 
             # =================================================
-            # EVALUATE BUTTON
+            # EVALUATE ANSWER
             # =================================================
 
             if not st.session_state.answer_evaluated:
 
                 if st.button(
-                    "🤖 Evaluate My Answer",
+                    "🤖 EVALUATE MY ANSWER",
                     use_container_width=True
                 ):
 
                     if not answer.strip():
 
                         st.warning(
-                            "⚠️ Please write your answer first."
+                            "Please write an answer first."
                         )
 
                     else:
@@ -762,42 +503,24 @@ elif st.session_state.navigation == "🎤 New Interview":
                                     answer
                                 )
 
+                                st.session_state.current_result = result
 
                                 st.session_state.answers.append(
                                     answer
                                 )
 
-
                                 st.session_state.results.append(
                                     result
                                 )
 
-
-                                st.session_state.current_result = (
-                                    result
-                                )
-
-
-                                st.session_state.answer_evaluated = (
-                                    True
-                                )
-
+                                st.session_state.answer_evaluated = True
 
                                 st.rerun()
 
-
-                            except Exception as error:
+                            except Exception as e:
 
                                 st.error(
-                                    "❌ AI evaluation failed."
-                                )
-
-                                st.write(
-                                    "Please check your AI configuration."
-                                )
-
-                                st.code(
-                                    str(error)
+                                    f"Error evaluating answer: {e}"
                                 )
 
 
@@ -807,10 +530,7 @@ elif st.session_state.navigation == "🎤 New Interview":
 
             if st.session_state.answer_evaluated:
 
-                result = (
-                    st.session_state.current_result
-                )
-
+                result = st.session_state.current_result
 
                 if result:
 
@@ -818,22 +538,33 @@ elif st.session_state.navigation == "🎤 New Interview":
                         "✅ Answer Evaluated Successfully"
                     )
 
+                    st.subheader(
+                        "⭐ Your Score"
+                    )
 
                     st.markdown(
-                        f"""
-                        <div class="score-box">
+                        f"# {result['score']}/10"
+                    )
 
-                        <h3>⭐ Your Score</h3>
+                    st.subheader(
+                        "📝 Grammar Correction"
+                    )
 
-                        <h1>{result['score']}/10</h1>
+                    st.info(
+                        result["grammar_correction"]
+                    )
 
-                                           st.subheader("💬 AI Feedback")
+                    st.subheader(
+                        "💬 AI Feedback"
+                    )
 
                     st.write(
                         result["feedback"]
                     )
 
-                    st.subheader("💡 Better Answer")
+                    st.subheader(
+                        "💡 Better Answer"
+                    )
 
                     st.info(
                         result["better_answer"]
@@ -841,19 +572,87 @@ elif st.session_state.navigation == "🎤 New Interview":
 
                     st.divider()
 
-                    # =========================================
+
+                    # =================================================
                     # NEXT QUESTION
-                    # =========================================
+                    # =================================================
 
                     if st.button(
                         "➡️ NEXT QUESTION",
                         use_container_width=True
                     ):
+
                         st.session_state.question_index += 1
+
                         st.session_state.answer_evaluated = False
-                        st.session_state.current_result = None
-                        st.rerun()
-                        st.session_state.answer_evaluated = False
+
                         st.session_state.current_result = None
 
                         st.rerun()
+
+
+# =========================================================
+# INTERVIEW HISTORY
+# =========================================================
+
+elif st.session_state.navigation == "📊 Interview History":
+
+    st.markdown(
+        '<div class="main-title">📊 Interview History</div>',
+        unsafe_allow_html=True
+    )
+
+    history = get_interview_history(
+        st.session_state.user
+    )
+
+    if not history:
+
+        st.info(
+            "No interview history found yet."
+        )
+
+    else:
+
+        for i, interview in enumerate(
+            history,
+            start=1
+        ):
+
+            with st.expander(
+                f"Interview #{i}"
+            ):
+
+                st.write(
+                    interview
+                )
+
+
+# =========================================================
+# PROFILE
+# =========================================================
+
+elif st.session_state.navigation == "👤 Profile":
+
+    st.markdown(
+        '<div class="main-title">👤 Profile</div>',
+        unsafe_allow_html=True
+    )
+
+    st.write(
+        f"**User:** {st.session_state.user}"
+    )
+
+    history = get_interview_history(
+        st.session_state.user
+    )
+
+    st.write(
+        f"**Total Interviews:** {len(history) if history else 0}"
+    )
+
+    st.divider()
+
+    st.info(
+        "Keep practicing to improve your interview performance. 🚀"
+    )
