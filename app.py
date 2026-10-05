@@ -1,18 +1,9 @@
 import streamlit as st
 import json
 
-from database import (
-    create_tables,
-    save_interview,
-    get_interview_history
-)
-
+from database import create_tables, save_interview, get_interview_history
 from auth import show_auth
-
-from ai_coach import (
-    evaluate_answer,
-    generate_final_report
-)
+from ai_coach import evaluate_answer, generate_final_report
 
 
 # =========================================================
@@ -22,289 +13,67 @@ from ai_coach import (
 st.set_page_config(
     page_title="AI Interview Coach",
     page_icon="🎤",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 
 # =========================================================
-# CUSTOM CSS — MODERN AI DESIGN
+# SIMPLE PROFESSIONAL CSS
 # =========================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
 
-    /* ---------- Main Background ---------- */
-
-    .stApp {
-        background:
-            radial-gradient(
-                circle at top left,
-                rgba(99, 102, 241, 0.12),
-                transparent 35%
-            ),
-            radial-gradient(
-                circle at top right,
-                rgba(14, 165, 233, 0.10),
-                transparent 30%
-            ),
-            #f8fafc;
-    }
-
-
-    /* ---------- Main Container ---------- */
-
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-        max-width: 1200px;
-    }
-
-
-    /* ---------- Hide Streamlit Branding ---------- */
-
-    #MainMenu {
-        visibility: hidden;
-    }
-
-    footer {
-        visibility: hidden;
-    }
-
-
-    /* ---------- Hero ---------- */
-
-    .hero {
-        background:
-            linear-gradient(
-                135deg,
-                #111827 0%,
-                #1e3a8a 55%,
-                #2563eb 100%
-            );
-
-        padding: 40px;
-        border-radius: 28px;
-        color: white;
-        margin-bottom: 28px;
-
-        box-shadow:
-            0 20px 45px rgba(37, 99, 235, 0.18);
-    }
-
-    .hero-title {
-        font-size: 46px;
+    .main-title {
+        font-size: 42px;
         font-weight: 800;
-        line-height: 1.1;
-        margin-bottom: 12px;
+        margin-bottom: 5px;
     }
 
-    .hero-subtitle {
+    .subtitle {
         font-size: 18px;
-        color: #dbeafe;
-        line-height: 1.7;
-    }
-
-
-    /* ---------- Cards ---------- */
-
-    .card {
-        background: white;
-        padding: 25px;
-        border-radius: 20px;
-        border: 1px solid #e5e7eb;
-
-        box-shadow:
-            0 8px 25px rgba(15, 23, 42, 0.06);
-
-        margin-bottom: 20px;
-    }
-
-
-    /* ---------- Stat Cards ---------- */
-
-    .stat-card {
-        background: white;
-        padding: 24px;
-        border-radius: 20px;
-        border: 1px solid #e5e7eb;
-
-        box-shadow:
-            0 8px 25px rgba(15, 23, 42, 0.05);
-
-        min-height: 140px;
-    }
-
-    .stat-icon {
-        font-size: 28px;
-    }
-
-    .stat-title {
         color: #64748b;
-        font-size: 14px;
-        margin-top: 8px;
+        margin-bottom: 30px;
     }
 
-    .stat-value {
-        color: #0f172a;
-        font-size: 32px;
-        font-weight: 800;
-        margin-top: 5px;
-    }
-
-
-    /* ---------- Question Card ---------- */
-
-    .question-card {
-        background:
-            linear-gradient(
-                135deg,
-                #eff6ff,
-                #ffffff
-            );
-
-        padding: 30px;
-        border-radius: 24px;
-
-        border: 1px solid #bfdbfe;
-
-        box-shadow:
-            0 10px 30px rgba(37, 99, 235, 0.08);
-
-        margin: 20px 0;
-    }
-
-    .question-label {
-        color: #2563eb;
-        font-weight: 700;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .question-text {
-        color: #0f172a;
-        font-size: 24px;
-        font-weight: 700;
-        line-height: 1.5;
-        margin-top: 10px;
-    }
-
-
-    /* ---------- AI Result ---------- */
-
-    .result-card {
-        background:
-            linear-gradient(
-                135deg,
-                #f0fdf4,
-                #ffffff
-            );
-
-        border: 1px solid #bbf7d0;
-
-        padding: 28px;
-        border-radius: 22px;
-
-        box-shadow:
-            0 10px 30px rgba(22, 163, 74, 0.07);
-
-        margin: 20px 0;
-    }
-
-
-    /* ---------- Score ---------- */
-
-    .score-card {
-        background:
-            linear-gradient(
-                135deg,
-                #fef3c7,
-                #ffffff
-            );
-
-        border: 1px solid #fde68a;
-
+    .welcome-box {
         padding: 25px;
-        border-radius: 20px;
+        border-radius: 18px;
+        background: #eef4ff;
+        border: 1px solid #d7e3ff;
+        margin-bottom: 25px;
+    }
 
+    .question-box {
+        padding: 25px;
+        border-radius: 18px;
+        background: #f8fafc;
+        border: 2px solid #dbeafe;
+        margin: 20px 0;
+    }
+
+    .score-box {
+        padding: 25px;
+        border-radius: 18px;
+        background: #fff7ed;
+        border: 2px solid #fed7aa;
         text-align: center;
         margin: 20px 0;
     }
 
-    .score-number {
-        font-size: 52px;
-        font-weight: 900;
-        color: #d97706;
+    .feature-box {
+        padding: 20px;
+        border-radius: 16px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 15px;
     }
 
-
-    /* ---------- Buttons ---------- */
-
-    .stButton > button {
-        border-radius: 14px;
-        min-height: 48px;
-
-        font-weight: 700;
-
-        border: none;
-
-        transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .stButton > button:hover {
-        transform: translateY(-2px);
-
-        box-shadow:
-            0 8px 20px rgba(37, 99, 235, 0.18);
-    }
-
-
-    /* ---------- Text Area ---------- */
-
-    textarea {
-        border-radius: 16px !important;
-    }
-
-
-    /* ---------- Sidebar ---------- */
-
-    section[data-testid="stSidebar"] {
-        background:
-            linear-gradient(
-                180deg,
-                #0f172a,
-                #111827
-            );
-    }
-
-    section[data-testid="stSidebar"] * {
-        color: white !important;
-    }
-
-
-    /* ---------- Progress ---------- */
-
-    .progress-text {
-        color: #64748b;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-
-    /* ---------- Footer ---------- */
-
-    .app-footer {
-        text-align: center;
-        color: #64748b;
-        padding: 30px 0 10px;
-        font-size: 13px;
-    }
-
-</style>
-""", unsafe_allow_html=True)
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # =========================================================
@@ -318,24 +87,41 @@ create_tables()
 # SESSION STATE
 # =========================================================
 
-defaults = {
-    "logged_in": False,
-    "user": None,
-    "interview_started": False,
-    "question_index": 0,
-    "answers": [],
-    "results": [],
-    "final_report": "",
-    "category": "",
-    "number_of_questions": 5,
-    "answer_evaluated": False,
-    "current_result": None
-}
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-for key, value in defaults.items():
+if "user" not in st.session_state:
+    st.session_state.user = None
 
-    if key not in st.session_state:
-        st.session_state[key] = value
+if "navigation" not in st.session_state:
+    st.session_state.navigation = "🏠 Dashboard"
+
+if "interview_started" not in st.session_state:
+    st.session_state.interview_started = False
+
+if "question_index" not in st.session_state:
+    st.session_state.question_index = 0
+
+if "answers" not in st.session_state:
+    st.session_state.answers = []
+
+if "results" not in st.session_state:
+    st.session_state.results = []
+
+if "final_report" not in st.session_state:
+    st.session_state.final_report = ""
+
+if "category" not in st.session_state:
+    st.session_state.category = ""
+
+if "number_of_questions" not in st.session_state:
+    st.session_state.number_of_questions = 5
+
+if "answer_evaluated" not in st.session_state:
+    st.session_state.answer_evaluated = False
+
+if "current_result" not in st.session_state:
+    st.session_state.current_result = None
 
 
 # =========================================================
@@ -352,18 +138,18 @@ def load_questions():
             encoding="utf-8"
         ) as file:
 
-            return json.load(file)
+            data = json.load(file)
+
+        return data
 
     except FileNotFoundError:
 
-        st.error("questions.json file was not found.")
-
+        st.error("❌ questions.json file was not found.")
         return {}
 
     except json.JSONDecodeError:
 
-        st.error("There is an error inside questions.json.")
-
+        st.error("❌ questions.json contains invalid JSON.")
         return {}
 
 
@@ -381,6 +167,10 @@ if not st.session_state.logged_in:
     st.stop()
 
 
+# =========================================================
+# USER
+# =========================================================
+
 user = st.session_state.user
 
 
@@ -390,45 +180,33 @@ user = st.session_state.user
 
 with st.sidebar:
 
-    st.markdown(
-        """
-        <div style="
-            text-align:center;
-            padding:15px 0 25px 0;
-        ">
-            <div style="font-size:45px;">🎤</div>
-            <div style="
-                font-size:22px;
-                font-weight:800;
-            ">
-                AI Interview
-            </div>
-            <div style="
-                font-size:13px;
-                opacity:0.7;
-            ">
-                Your Personal AI Coach
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.title("🎤 AI Interview Coach")
+
+    st.caption("Your Personal AI Interview Assistant")
 
     st.divider()
 
-    st.write(f"👤 *{user['name']}*")
-    st.caption(user["email"])
+    st.write("👤 *" + str(user["name"]) + "*")
+
+    st.caption(str(user["email"]))
 
     st.divider()
 
-    page = st.radio(
+    st.session_state.navigation = st.radio(
         "Navigation",
         [
             "🏠 Dashboard",
             "🎤 New Interview",
             "📊 Interview History",
             "👤 Profile"
-        ]
+        ],
+        key="navigation_radio",
+        index=[
+            "🏠 Dashboard",
+            "🎤 New Interview",
+            "📊 Interview History",
+            "👤 Profile"
+        ].index(st.session_state.navigation)
     )
 
     st.divider()
@@ -440,11 +218,13 @@ with st.sidebar:
 
         st.session_state.logged_in = False
         st.session_state.user = None
+
         st.session_state.interview_started = False
         st.session_state.question_index = 0
         st.session_state.answers = []
         st.session_state.results = []
         st.session_state.final_report = ""
+
         st.session_state.answer_evaluated = False
         st.session_state.current_result = None
 
@@ -455,44 +235,27 @@ with st.sidebar:
 # DASHBOARD
 # =========================================================
 
-if page == "🏠 Dashboard":
+if st.session_state.navigation == "🏠 Dashboard":
 
     st.markdown(
-        """
-        <div class="hero">
-
-            <div class="hero-title">
-                🎤 AI-Powered<br>
-                Interview Coach
-            </div>
-
-            <div class="hero-subtitle">
-                Practice smarter. Speak better.
-                Build confidence and become interview-ready
-                with your personal AI coach.
-            </div>
-
-        </div>
-        """,
+        '<div class="main-title">🎤 AI-Powered Interview Coach</div>',
         unsafe_allow_html=True
     )
 
+    st.markdown(
+        '<div class="subtitle">Practice interviews with AI, improve your answers, and build confidence.</div>',
+        unsafe_allow_html=True
+    )
 
     st.markdown(
         f"""
-        <div class="card">
+        <div class="welcome-box">
 
-            <h2 style="margin-bottom:5px;">
-                Welcome, {user['name']}! 👋
-            </h2>
+        <h2>Welcome, {user["name"]}! 👋</h2>
 
-            <p style="
-                color:#64748b;
-                font-size:16px;
-            ">
-                Your AI-powered interview preparation
-                starts here.
-            </p>
+        <p>
+        Your personal AI interview preparation assistant is ready.
+        </p>
 
         </div>
         """,
@@ -500,9 +263,7 @@ if page == "🏠 Dashboard":
     )
 
 
-    history = get_interview_history(
-        user["id"]
-    )
+    history = get_interview_history(user["id"])
 
     total_interviews = len(history)
 
@@ -510,8 +271,7 @@ if page == "🏠 Dashboard":
     if total_interviews > 0:
 
         average_score = sum(
-            interview[2]
-            for interview in history
+            item[2] for item in history
         ) / total_interviews
 
     else:
@@ -524,87 +284,36 @@ if page == "🏠 Dashboard":
 
     with col1:
 
-        st.markdown(
-            f"""
-            <div class="stat-card">
-
-                <div class="stat-icon">🎤</div>
-
-                <div class="stat-title">
-                    Interviews Completed
-                </div>
-
-                <div class="stat-value">
-                    {total_interviews}
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "🎤 Interviews Completed",
+            total_interviews
         )
 
 
     with col2:
 
-        st.markdown(
-            f"""
-            <div class="stat-card">
-
-                <div class="stat-icon">⭐</div>
-
-                <div class="stat-title">
-                    Average Score
-                </div>
-
-                <div class="stat-value">
-                    {average_score:.1f}/10
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "⭐ Average Score",
+            f"{average_score:.1f}/10"
         )
 
 
     with col3:
 
-        st.markdown(
-            f"""
-            <div class="stat-card">
-
-                <div class="stat-icon">📚</div>
-
-                <div class="stat-title">
-                    Question Categories
-                </div>
-
-                <div class="stat-value">
-                    {len(questions)}
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "📚 Categories",
+            len(questions)
         )
 
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.divider()
 
 
-    st.markdown(
-        """
-        <div class="card">
+    st.subheader("🚀 Start Practicing")
 
-            <h2>🚀 Ready for your next interview?</h2>
-
-            <p style="color:#64748b;">
-                Practice real interview questions,
-                get AI feedback and improve your answers.
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.write(
+        "Choose an interview category and practice "
+        "your answers with AI feedback."
     )
 
 
@@ -612,6 +321,8 @@ if page == "🏠 Dashboard":
         "🚀 Start New Interview",
         use_container_width=True
     ):
+
+        st.session_state.navigation = "🎤 New Interview"
 
         st.session_state.interview_started = False
 
@@ -634,55 +345,72 @@ if page == "🏠 Dashboard":
 # NEW INTERVIEW
 # =========================================================
 
-elif page == "🎤 New Interview":
+elif st.session_state.navigation == "🎤 New Interview":
 
     st.title("🎤 AI Interview")
 
 
-    # -----------------------------------------------------
-    # START SCREEN
-    # -----------------------------------------------------
+    # =====================================================
+    # BEFORE INTERVIEW
+    # =====================================================
 
     if not st.session_state.interview_started:
 
-        st.markdown(
-            """
-            <div class="hero">
+        st.subheader("⚙️ Interview Settings")
 
-                <div class="hero-title">
-                    🚀 Start Your Interview
-                </div>
-
-                <div class="hero-subtitle">
-                    Choose your interview category and
-                    number of questions.
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.write(
+            "Choose your category and number of questions."
         )
 
 
+        # Check questions
         if not questions:
 
             st.error(
-                "No interview questions are available."
+                "❌ No questions found in questions.json."
+            )
+
+            st.info(
+                "Please make sure questions.json contains your interview questions."
             )
 
             st.stop()
 
 
+        # Category
         category = st.selectbox(
-            "🎯 Choose Interview Category",
+            "🎯 Interview Category",
             list(questions.keys())
         )
 
 
-        max_questions = min(
-            10,
-            len(questions[category])
-        )
+        # Get questions
+        category_questions = questions[category]
+
+
+        if not isinstance(category_questions, list):
+
+            st.error(
+                "❌ The selected category does not contain a list of questions."
+            )
+
+            st.stop()
+
+
+        if len(category_questions) < 3:
+
+            st.warning(
+                "⚠️ This category has fewer than 3 questions."
+            )
+
+            max_questions = len(category_questions)
+
+        else:
+
+            max_questions = min(
+                10,
+                len(category_questions)
+            )
 
 
         default_questions = min(
@@ -691,34 +419,45 @@ elif page == "🎤 New Interview":
         )
 
 
-        number_of_questions = st.slider(
-            "📝 Number of Questions",
-            min_value=3,
-            max_value=max_questions,
-            value=default_questions
-        )
+        if max_questions >= 1:
+
+            number_of_questions = st.slider(
+                "📝 Number of Questions",
+                min_value=1,
+                max_value=max_questions,
+                value=default_questions
+            )
+
+        else:
+
+            st.error(
+                "❌ No questions are available in this category."
+            )
+
+            st.stop()
 
 
-        st.markdown(
+        st.divider()
+
+
+        st.info(
             f"""
-            <div class="card">
+            🎯 Category: *{category}*
 
-                <b>🎯 Category:</b> {category}<br><br>
+            📝 Questions: *{number_of_questions}*
 
-                <b>📝 Questions:</b>
-                {number_of_questions}<br><br>
-
-                <b>🤖 AI Feedback:</b>
-                Grammar + Score + Better Answer
-
-            </div>
-            """,
-            unsafe_allow_html=True
+            🤖 AI will evaluate your answer and provide:
+            Score, grammar correction, feedback and a better answer.
+            """
         )
 
+
+        # =================================================
+        # START BUTTON
+        # =================================================
 
         if st.button(
-            "🚀 Start Interview",
+            "🚀 START INTERVIEW",
             use_container_width=True
         ):
 
@@ -745,9 +484,9 @@ elif page == "🎤 New Interview":
             st.rerun()
 
 
-    # -----------------------------------------------------
-    # INTERVIEW RUNNING
-    # -----------------------------------------------------
+    # =====================================================
+    # INTERVIEW STARTED
+    # =====================================================
 
     else:
 
@@ -757,45 +496,29 @@ elif page == "🎤 New Interview":
             st.session_state.number_of_questions
         )
 
-        question_list = questions[category]
 
-        question_list = question_list[
+        question_list = questions[category][
             :number_of_questions
         ]
+
 
         current_index = (
             st.session_state.question_index
         )
 
 
-        # -------------------------------------------------
-        # INTERVIEW COMPLETED
-        # -------------------------------------------------
+        # =================================================
+        # COMPLETED
+        # =================================================
 
         if current_index >= len(question_list):
 
             st.success(
-                "🎉 Interview Completed Successfully!"
+                "🎉 Interview Completed!"
             )
 
 
-            st.markdown(
-                """
-                <div class="hero">
-
-                    <div class="hero-title">
-                        🏆 Interview Complete
-                    </div>
-
-                    <div class="hero-subtitle">
-                        Great work! Here is your
-                        complete AI performance report.
-                    </div>
-
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            st.title("🏆 Final Interview Report")
 
 
             if st.session_state.results:
@@ -814,34 +537,16 @@ elif page == "🎤 New Interview":
 
                 st.markdown(
                     f"""
-                    <div class="score-card">
+                    <div class="score-box">
 
-                        <div style="
-                            font-size:18px;
-                            font-weight:700;
-                        ">
-                            ⭐ Overall Score
-                        </div>
+                    <h2>⭐ Overall Score</h2>
 
-                        <div class="score-number">
-                            {average_score:.1f}/10
-                        </div>
-
-                        <div style="
-                            color:#64748b;
-                        ">
-                            Based on
-                            {len(st.session_state.results)}
-                            questions
-                        </div>
+                    <h1>{average_score:.1f}/10</h1>
 
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
-
-
-                st.divider()
 
 
                 st.subheader(
@@ -855,11 +560,12 @@ elif page == "🎤 New Interview":
                 ):
 
                     with st.expander(
-                        f"Question {index}  •  "
-                        f"Score: {result['score']}/10"
+                        f"Question {index} — Score {result['score']}/10"
                     ):
 
-                        st.write("### ⭐ Score")
+                        st.write(
+                            "### ⭐ Score"
+                        )
 
                         st.write(
                             f"{result['score']}/10"
@@ -871,9 +577,7 @@ elif page == "🎤 New Interview":
                         )
 
                         st.write(
-                            result[
-                                "grammar_correction"
-                            ]
+                            result["grammar_correction"]
                         )
 
 
@@ -891,18 +595,13 @@ elif page == "🎤 New Interview":
                         )
 
                         st.info(
-                            result[
-                                "better_answer"
-                            ]
+                            result["better_answer"]
                         )
 
 
-                st.divider()
-
-
-                # -------------------------------------------------
+                # =========================================
                 # FINAL REPORT
-                # -------------------------------------------------
+                # =========================================
 
                 if not st.session_state.final_report:
 
@@ -912,16 +611,12 @@ elif page == "🎤 New Interview":
 
                         try:
 
-                            report = (
-                                generate_final_report(
-                                    st.session_state.results
-                                )
+                            report = generate_final_report(
+                                st.session_state.results
                             )
 
 
-                            st.session_state.final_report = (
-                                report
-                            )
+                            st.session_state.final_report = report
 
 
                             save_interview(
@@ -938,7 +633,7 @@ elif page == "🎤 New Interview":
                         except Exception as error:
 
                             st.error(
-                                "Could not create final report."
+                                "❌ Could not create final report."
                             )
 
                             st.code(
@@ -948,4 +643,230 @@ elif page == "🎤 New Interview":
 
                 if st.session_state.final_report:
 
-                    s
+                    st.subheader(
+                        "📋 AI Final Report"
+                    )
+
+                    st.write(
+                        st.session_state.final_report
+                    )
+
+
+            st.divider()
+
+
+            if st.button(
+                "🔄 Start New Interview",
+                use_container_width=True
+            ):
+
+                st.session_state.interview_started = False
+
+                st.session_state.question_index = 0
+
+                st.session_state.answers = []
+
+                st.session_state.results = []
+
+                st.session_state.final_report = ""
+
+                st.session_state.answer_evaluated = False
+
+                st.session_state.current_result = None
+
+                st.rerun()
+
+
+        # =================================================
+        # CURRENT QUESTION
+        # =================================================
+
+        else:
+
+            current_question = question_list[
+                current_index
+            ]
+
+
+            # Progress
+            progress = (
+                current_index /
+                len(question_list)
+            )
+
+
+            st.progress(
+                progress
+            )
+
+
+            st.caption(
+                f"Question {current_index + 1} "
+                f"of {len(question_list)}"
+            )
+
+
+            # Question card
+            st.markdown(
+                f"""
+                <div class="question-box">
+
+                <h3>🤖 Interview Question</h3>
+
+                <h2>{current_question}</h2>
+
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+
+            # Answer
+            answer = st.text_area(
+                "✍️ Your Answer",
+                height=220,
+                placeholder=(
+                    "Write your interview answer in English..."
+                ),
+                key=f"answer_{current_index}"
+            )
+
+
+            # =================================================
+            # EVALUATE BUTTON
+            # =================================================
+
+            if not st.session_state.answer_evaluated:
+
+                if st.button(
+                    "🤖 Evaluate My Answer",
+                    use_container_width=True
+                ):
+
+                    if not answer.strip():
+
+                        st.warning(
+                            "⚠️ Please write your answer first."
+                        )
+
+                    else:
+
+                        with st.spinner(
+                            "🤖 AI is evaluating your answer..."
+                        ):
+
+                            try:
+
+                                result = evaluate_answer(
+                                    current_question,
+                                    answer
+                                )
+
+
+                                st.session_state.answers.append(
+                                    answer
+                                )
+
+
+                                st.session_state.results.append(
+                                    result
+                                )
+
+
+                                st.session_state.current_result = (
+                                    result
+                                )
+
+
+                                st.session_state.answer_evaluated = (
+                                    True
+                                )
+
+
+                                st.rerun()
+
+
+                            except Exception as error:
+
+                                st.error(
+                                    "❌ AI evaluation failed."
+                                )
+
+                                st.write(
+                                    "Please check your AI configuration."
+                                )
+
+                                st.code(
+                                    str(error)
+                                )
+
+
+            # =================================================
+            # SHOW RESULT
+            # =================================================
+
+            if st.session_state.answer_evaluated:
+
+                result = (
+                    st.session_state.current_result
+                )
+
+
+                if result:
+
+                    st.success(
+                        "✅ Answer Evaluated Successfully"
+                    )
+
+
+                    st.markdown(
+                        f"""
+                        <div class="score-box">
+
+                        <h3>⭐ Your Score</h3>
+
+                        <h1>{result['score']}/10</h1>
+
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+
+                    st.subheader(
+                        "✅ Grammar Correction"
+                    )
+
+                    st.info(
+                        result["grammar_correction"]
+                    )
+
+
+                    st.subheader(
+                        "💬 AI Feedback"
+                    )
+
+                    st.write(
+                        result["feedback"]
+                    )
+
+
+                    st.subheader(
+                        "💡 Better Answer"
+                    )
+
+                    st.info(
+                        result["better_answer"]
+                    )
+
+
+                    st.divider()
+
+
+                    # =========================================
+                    # NEXT QUESTION
+                    # =========================================
+
+                    if st.button(
+                        "➡️ NEXT QUESTION",
+                        u
