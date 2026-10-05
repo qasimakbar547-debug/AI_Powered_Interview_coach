@@ -869,4 +869,4 @@ elif st.session_state.navigation == "🎤 New Interview":
 
                     if st.button(
                         "➡️ NEXT QUESTION",
-                        u
+                        u)
