@@ -827,17 +827,13 @@ elif st.session_state.navigation == "🎤 New Interview":
 
                         <h1>{result['score']}/10</h1>
 
-                        </div>
-                        """,
-                        unsafe_allow_html=True
+                                           st.subheader("💬 AI Feedback")
+
+                    st.write(
+                        result["feedback"]
                     )
 
-
-                    st.subheader(
-                        "✅ Grammar Correction"
-                    )
-
-                                       st.subheader("💡 Better Answer")
+                    st.subheader("💡 Better Answer")
 
                     st.info(
                         result["better_answer"]
@@ -857,7 +853,6 @@ elif st.session_state.navigation == "🎤 New Interview":
                         st.session_state.answer_evaluated = False
                         st.session_state.current_result = None
                         st.rerun()
-                        st.session_state.question_index += 1
                         st.session_state.answer_evaluated = False
                         st.session_state.current_result = None
 
